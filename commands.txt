@@ -1,0 +1,25 @@
+For c-program:
+
+gcc filename.c
+./a.exe  (or) .\a.exe  (or) ./a.out
+
+
+For Lex_tool:
+
+lex filename.l
+gcc lex.yy.c -o filename -ll  (or)  gcc lex.yy.c -o filename
+./filename
+
+For Lex and Yacc:
+
+yacc -d filename.y
+lex filename.l
+gcc lex.yy.c y.tab.c -o filename -ll
+./filename
+
+In three address code:
+
+bison -d file.y
+flex file.l
+gcc -o tac lex.yy.c file.tab.c -lfl
+
