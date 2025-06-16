@@ -1,0 +1,90 @@
+%{
+#include <stdio.h>
+#include <stdlib.h>
+#include <string.h>
+
+typedef struct {
+    char op[5], arg1[10], arg2[10], result[10];
+} Quad;
+
+Quad quad[100];
+int quadIndex = 0;
+
+void printQuadruple() {
+    printf("\n--- QUADRUPLE ---\n");
+    printf("Op\tArg1\tArg2\tResult\n");
+    for (int i = 0; i < quadIndex; i++) {
+        printf("%s\t%s\t%s\t%s\n", quad[i].op, quad[i].arg1, quad[i].arg2, quad[i].result);
+    }
+}
+
+void printTriple() {
+    printf("\n--- TRIPLE ---\n");
+    printf("Index\tOp\tArg1\tArg2\n");
+    for (int i = 0; i < quadIndex; i++) {
+        printf("%d\t%s\t%s\t%s\n", i, quad[i].op, quad[i].arg1, quad[i].arg2);
+    }
+}
+
+void printIndirectTriple() {
+    printf("\n--- INDIRECT TRIPLE ---\n");
+    printf("Index\tPointer\n");
+    for (int i = 0; i < quadIndex; i++) {
+        printf("%d\t-> [%d] %s %s %s\n", i, i, quad[i].op, quad[i].arg1, quad[i].arg2);
+    }
+}
+%}
+
+%union {
+    char* str;
+}
+
+%token <str> ID NUM
+%token EOL
+
+%%
+stmt_list:
+    stmt_list stmt EOL
+    |
+    ;
+
+stmt:
+    ID '=' ID op ID {
+        strcpy(quad[quadIndex].result, $1);
+        strcpy(quad[quadIndex].arg1, $3);
+        strcpy(quad[quadIndex].op, $4);
+        strcpy(quad[quadIndex].arg2, $5);
+        quadIndex++;
+    }
+    |
+    ID '=' ID {
+        strcpy(quad[quadIndex].result, $1);
+        strcpy(quad[quadIndex].arg1, $3);
+        strcpy(quad[quadIndex].op, "=");
+        strcpy(quad[quadIndex].arg2, "-");
+        quadIndex++;
+    }
+    ;
+
+op:
+    '+'   { $$ = "+"; }
+    '-'   { $$ = "-"; }
+    '*'   { $$ = "*"; }
+    '/'   { $$ = "/"; }
+    ;
+%%
+
+int main() {
+    printf("Enter TAC statements (end with Ctrl+D):\n");
+    yyparse();
+
+    printQuadruple();
+    printTriple();
+    printIndirectTriple();
+    return 0;
+}
+
+int yyerror(const char *s) {
+    printf("Parse error: %s\n", s);
+    return 1;
+}
