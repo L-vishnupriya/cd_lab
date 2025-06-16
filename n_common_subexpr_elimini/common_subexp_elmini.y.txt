@@ -1,0 +1,95 @@
+%{
+#include <stdio.h>
+#include <stdlib.h>
+#include <string.h>
+
+typedef struct {
+    char code[100];
+} Expr;
+
+Expr cse[100];
+int cse_count = 0;
+
+int find_cse(char *code) {
+    for (int i = 0; i < cse_count; i++) {
+        if (strcmp(cse[i].code, code) == 0)
+            return i;
+    }
+    return -1;
+}
+
+void add_cse(char *code) {
+    strcpy(cse[cse_count].code, code);
+    cse_count++;
+}
+%}
+
+%union {
+    int num;
+    char* id;
+    Expr expr;
+}
+
+%token <num> NUMBER
+%token <id> ID
+%type <expr> expr
+%type <expr> stmt
+
+%%
+
+program:
+    program stmt
+    |
+    ;
+
+stmt:
+    ID '=' expr ';' {
+        printf("%s = %s\n", $1, $3.code);
+    }
+    ;
+
+expr:
+    expr '+' expr {
+        Expr e;
+        sprintf(e.code, "%s + %s", $1.code, $3.code);
+        if (find_cse(e.code) != -1)
+            printf("// CSE: reused %s\n", e.code);
+        else
+            add_cse(e.code);
+        $$ = e;
+    }
+    | expr '*' expr {
+        Expr e;
+        sprintf(e.code, "%s * %s", $1.code, $3.code);
+        if (find_cse(e.code) != -1)
+            printf("// CSE: reused %s\n", e.code);
+        else
+            add_cse(e.code);
+        $$ = e;
+    }
+    | '(' expr ')' {
+        $$ = $2;
+    }
+    | NUMBER {
+        Expr e;
+        sprintf(e.code, "%d", $1);
+        $$ = e;
+    }
+    | ID {
+        Expr e;
+        strcpy(e.code, $1);
+        $$ = e;
+    }
+    ;
+
+%%
+
+int main() {
+    yyparse();
+    return 0;
+}
+
+int yyerror(char *s) {
+    printf("Error: %s\n", s);
+    return 0;
+}
